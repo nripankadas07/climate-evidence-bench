@@ -1,0 +1,15 @@
+name: Feature request
+description: Propose an evaluator component, unit, or adapter contract
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Evaluation gap
+    validations:
+      required: true
+  - type: textarea
+    id: cases
+    attributes:
+      label: Positive and negative synthetic cases
+    validations:
+      required: true

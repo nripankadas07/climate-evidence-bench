@@ -1,0 +1,21 @@
+name: Bug report
+description: Report a reproducible evaluator defect
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+  - type: textarea
+    id: record
+    attributes:
+      label: Minimal synthetic task and answer
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected failure code or score
+    validations:
+      required: true

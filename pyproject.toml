@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "climate-evidence-bench"
+version = "0.1.0"
+description = "Deterministic evaluator for evidence-grounded climate and sustainability answers"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+authors = [{name = "Nripanka Das"}]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/nripankadas07/climate-evidence-bench"
+Repository = "https://github.com/nripankadas07/climate-evidence-bench"
+Issues = "https://github.com/nripankadas07/climate-evidence-bench/issues"
+
+[project.scripts]
+climate-evidence-bench = "climate_evidence_bench.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

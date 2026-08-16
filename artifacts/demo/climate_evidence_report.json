@@ -1,0 +1,191 @@
+{
+  "artifact_type": "climate-evidence-bench.evaluation-report",
+  "component_weights": {
+    "citation": 0.2,
+    "entity": 0.1,
+    "geography": 0.1,
+    "numeric": 0.3,
+    "temporal_validity": 0.1,
+    "unit": 0.1,
+    "year": 0.1
+  },
+  "failure_taxonomy": {
+    "citation_future_dated": "The selected source was published after the evaluation as-of date.",
+    "citation_not_yet_valid": "The selected source was not yet valid on the as-of date.",
+    "citation_source_mismatch": "No cited source is accepted for this task.",
+    "citation_stale": "The selected source had expired before the as-of date.",
+    "entity_mismatch": "The answer entity differs after conservative normalization.",
+    "geography_mismatch": "The answer geography differs after conservative normalization.",
+    "invalid_numeric": "The answer value is absent, non-numeric, or non-finite.",
+    "malformed_record": "A task or answer is missing a required field or has an invalid type.",
+    "missing_answer": "No answer record was supplied for the task.",
+    "missing_citation": "The answer includes no citation.",
+    "numeric_out_of_tolerance": "The converted answer is outside absolute and relative tolerance.",
+    "unit_dimension_mismatch": "Answer and expected units describe different dimensions.",
+    "unsupported_unit": "The answer or expected unit is outside the explicit registry.",
+    "year_mismatch": "The answer year differs from the requested entity-year context."
+  },
+  "generator": {
+    "name": "climate-evidence-bench",
+    "version": "0.1.0"
+  },
+  "metrics": {
+    "component_pass_rates": {
+      "citation": 0.833333,
+      "entity": 0.833333,
+      "geography": 0.833333,
+      "numeric": 0.666667,
+      "temporal_validity": 0.666667,
+      "unit": 0.833333,
+      "year": 0.833333
+    },
+    "duplicate_answer_ids": [],
+    "failure_counts": {
+      "citation_source_mismatch": 1,
+      "citation_stale": 1,
+      "entity_mismatch": 1,
+      "geography_mismatch": 1,
+      "numeric_out_of_tolerance": 1,
+      "unit_dimension_mismatch": 1,
+      "year_mismatch": 1
+    },
+    "mean_score": 0.766667,
+    "orphan_answer_ids": [],
+    "pass_rate": 0.166667,
+    "passed_count": 1,
+    "task_count": 6
+  },
+  "schema_version": "1.0.0",
+  "synthetic_notice": "Every bundled entity, geography, measurement, and source is synthetic benchmark data. No record is a current climate fact.",
+  "tasks": [
+    {
+      "components": {
+        "citation": true,
+        "entity": true,
+        "geography": true,
+        "numeric": true,
+        "temporal_validity": true,
+        "unit": true,
+        "year": true
+      },
+      "converted_value_in_expected_unit": 2.4,
+      "failures": [],
+      "passed": true,
+      "score": 1.0,
+      "task_id": "unit-conversion-pass"
+    },
+    {
+      "components": {
+        "citation": true,
+        "entity": true,
+        "geography": true,
+        "numeric": false,
+        "temporal_validity": true,
+        "unit": true,
+        "year": true
+      },
+      "converted_value_in_expected_unit": 900.0,
+      "failures": [
+        {
+          "code": "numeric_out_of_tolerance",
+          "message": "Converted value 900 differs from 850; allowed 2."
+        }
+      ],
+      "passed": false,
+      "score": 0.7,
+      "task_id": "tolerance-fail"
+    },
+    {
+      "components": {
+        "citation": true,
+        "entity": true,
+        "geography": true,
+        "numeric": false,
+        "temporal_validity": true,
+        "unit": false,
+        "year": true
+      },
+      "converted_value_in_expected_unit": null,
+      "failures": [
+        {
+          "code": "unit_dimension_mismatch",
+          "message": "cannot convert GWh (energy) to ktCO2e (emissions)"
+        }
+      ],
+      "passed": false,
+      "score": 0.6,
+      "task_id": "dimension-fail"
+    },
+    {
+      "components": {
+        "citation": true,
+        "entity": false,
+        "geography": false,
+        "numeric": true,
+        "temporal_validity": true,
+        "unit": true,
+        "year": false
+      },
+      "converted_value_in_expected_unit": 0.42,
+      "failures": [
+        {
+          "code": "year_mismatch",
+          "message": "The answer year differs from the requested entity-year context."
+        },
+        {
+          "code": "geography_mismatch",
+          "message": "The answer geography differs after conservative normalization."
+        },
+        {
+          "code": "entity_mismatch",
+          "message": "The answer entity differs after conservative normalization."
+        }
+      ],
+      "passed": false,
+      "score": 0.7,
+      "task_id": "context-fail"
+    },
+    {
+      "components": {
+        "citation": false,
+        "entity": true,
+        "geography": true,
+        "numeric": true,
+        "temporal_validity": false,
+        "unit": true,
+        "year": true
+      },
+      "converted_value_in_expected_unit": 1250.0,
+      "failures": [
+        {
+          "code": "citation_source_mismatch",
+          "message": "No cited source is accepted for this task."
+        }
+      ],
+      "passed": false,
+      "score": 0.7,
+      "task_id": "source-fail"
+    },
+    {
+      "components": {
+        "citation": true,
+        "entity": true,
+        "geography": true,
+        "numeric": true,
+        "temporal_validity": false,
+        "unit": true,
+        "year": true
+      },
+      "converted_value_in_expected_unit": 4000.0,
+      "failures": [
+        {
+          "code": "citation_stale",
+          "message": "The selected source had expired before the as-of date."
+        }
+      ],
+      "passed": false,
+      "score": 0.9,
+      "task_id": "temporal-fail"
+    }
+  ]
+}
