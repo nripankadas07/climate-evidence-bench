@@ -170,6 +170,72 @@ class ReportCliTests(unittest.TestCase):
             self.assertEqual(failed.returncode, 1, failed.stderr)
             self.assertTrue((root / "fail" / "climate_evidence_report.json").exists())
 
+    def test_cli_controls_oversized_task_and_answer_numbers(self):
+        tasks, answers = demo_records()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            task_path = root / "tasks.jsonl"
+            answer_path = root / "answers.jsonl"
+
+            oversized_task = json.loads(json.dumps(tasks[0]))
+            oversized_task["expected"]["value"] = 10 ** 400
+            write_jsonl([oversized_task], task_path)
+            write_jsonl([answers[0]], answer_path)
+            invalid_output = root / "invalid-task"
+            command = [
+                sys.executable,
+                "-m",
+                "climate_evidence_bench",
+                "evaluate",
+                "--tasks",
+                str(task_path),
+                "--answers",
+                str(answer_path),
+                "--output-dir",
+                str(invalid_output),
+            ]
+            invalid = subprocess.run(
+                command,
+                cwd=str(ROOT),
+                env=env,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            invalid_report_exists = invalid_output.exists()
+
+            oversized_answer = json.loads(json.dumps(answers[0]))
+            oversized_answer["value"] = 10 ** 400
+            write_jsonl([tasks[0]], task_path)
+            write_jsonl([oversized_answer], answer_path)
+            findings_output = root / "answer-finding"
+            command[-1] = str(findings_output)
+            findings = subprocess.run(
+                command,
+                cwd=str(ROOT),
+                env=env,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            report = json.loads(
+                (findings_output / "climate_evidence_report.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+
+        self.assertEqual(invalid.returncode, 2)
+        self.assertIn("finite number", invalid.stderr)
+        self.assertNotIn("Traceback", invalid.stderr)
+        self.assertFalse(invalid_report_exists)
+        self.assertEqual(findings.returncode, 1, findings.stderr)
+        self.assertNotIn("Traceback", findings.stderr)
+        self.assertEqual(
+            report["tasks"][0]["failures"][0]["code"], "invalid_numeric"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

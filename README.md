@@ -18,6 +18,7 @@ An answer can contain the right-looking number and still be wrong because it use
 - Accepted-source and as-of-date checks
 - Stable failure taxonomy and weighted component scores
 - JSON, Markdown, and self-contained HTML from one `1.0.0` result artifact
+- Demo JSONL and report bundles are staged and rolled back as a set; cooperating writers hold an exclusive advisory directory lock so their files cannot mix, and output-directory links and pre-existing artifact links are rejected rather than followed.
 - Standard-library unit and subprocess integration tests
 
 ## 60-second demo
@@ -80,6 +81,12 @@ The benchmark evaluates structured records, not free-form scientific reasoning o
 make test
 make demo
 make golden
+python -m pip install build==1.4.4
+release_dir="$(mktemp -d)"
+python -m build --sdist --outdir "$release_dir"
+python scripts/check_sdist.py "$release_dir"/*.tar.gz
 ```
+
+The source-distribution check rejects unsafe or cache/build entries, verifies that examples and golden fixtures are present, extracts the archive, and runs its complete embedded test suite.
 
 MIT licensed.

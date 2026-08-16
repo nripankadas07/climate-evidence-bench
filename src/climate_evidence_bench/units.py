@@ -95,4 +95,10 @@ def convert(value: float, from_unit: str, to_unit: str) -> float:
                 from_unit, from_dimension, to_unit, to_dimension
             )
         )
-    return float(value) * from_factor / to_factor
+    normalized = float(value)
+    if from_factor == to_factor:
+        # Identity conversions must preserve every finite float exactly,
+        # including the largest values and signed subnormals.
+        return normalized
+    factor_ratio = from_factor / to_factor
+    return normalized * factor_ratio

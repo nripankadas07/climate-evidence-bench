@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
+from .safeio import write_text_files
+
 
 def read_jsonl(path: Path) -> List[Dict[str, Any]]:
     records: List[Dict[str, Any]] = []
@@ -20,9 +22,11 @@ def read_jsonl(path: Path) -> List[Dict[str, Any]]:
     return records
 
 
-def write_jsonl(records: Iterable[Dict[str, Any]], path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    text = "".join(
+def jsonl_text(records: Iterable[Dict[str, Any]]) -> str:
+    return "".join(
         json.dumps(record, sort_keys=True, allow_nan=False) + "\n" for record in records
     )
-    path.write_text(text, encoding="utf-8")
+
+
+def write_jsonl(records: Iterable[Dict[str, Any]], path: Path) -> None:
+    write_text_files(path.parent, {path.name: jsonl_text(records)})

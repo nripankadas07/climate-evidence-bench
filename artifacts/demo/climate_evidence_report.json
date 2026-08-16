@@ -27,7 +27,7 @@
   },
   "generator": {
     "name": "climate-evidence-bench",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "metrics": {
     "component_pass_rates": {
