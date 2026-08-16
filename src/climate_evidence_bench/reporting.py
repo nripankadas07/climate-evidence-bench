@@ -4,7 +4,9 @@ import html
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Mapping, Optional
+
+from .safeio import write_text_files
 
 
 def _markdown_text(value: Any) -> str:
@@ -85,17 +87,24 @@ def _html(result: Dict[str, Any]) -> str:
     )
 
 
-def write_reports(result: Dict[str, Any], output_dir: Path) -> Dict[str, Path]:
-    output_dir.mkdir(parents=True, exist_ok=True)
+def write_reports(
+    result: Dict[str, Any],
+    output_dir: Path,
+    extra_files: Optional[Mapping[str, str]] = None,
+) -> Dict[str, Path]:
     paths = {
         "json": output_dir / "climate_evidence_report.json",
         "markdown": output_dir / "climate_evidence_report.md",
         "html": output_dir / "climate_evidence_report.html",
     }
-    paths["json"].write_text(
-        json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n",
-        encoding="utf-8",
+    files = dict(extra_files or {})
+    files.update(
+        {
+            paths["json"].name: json.dumps(result, indent=2, sort_keys=True, allow_nan=False)
+            + "\n",
+            paths["markdown"].name: _markdown(result),
+            paths["html"].name: _html(result),
+        }
     )
-    paths["markdown"].write_text(_markdown(result), encoding="utf-8")
-    paths["html"].write_text(_html(result), encoding="utf-8")
+    write_text_files(output_dir, files)
     return paths

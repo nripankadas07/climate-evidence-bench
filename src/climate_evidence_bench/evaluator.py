@@ -48,6 +48,17 @@ def _normalized_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value).strip().casefold())
 
 
+def _finite_json_number(value: Any) -> Optional[float]:
+    """Normalize finite JSON numbers without leaking float-conversion overflow."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        normalized = float(value)
+    except OverflowError:
+        return None
+    return normalized if math.isfinite(normalized) else None
+
+
 def _parse_date(value: str) -> date:
     if not isinstance(value, str) or re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value) is None:
         raise ValueError("date must use exact YYYY-MM-DD syntax")
@@ -89,11 +100,7 @@ def _validate_task(task: Dict[str, Any]) -> None:
             raise ValueError("task expected missing {0}".format(key))
     expected = task["expected"]
     expected_value = expected["value"]
-    if (
-        isinstance(expected_value, bool)
-        or not isinstance(expected_value, (int, float))
-        or not math.isfinite(float(expected_value))
-    ):
+    if _finite_json_number(expected_value) is None:
         raise ValueError("task expected.value must be a finite number")
     if not isinstance(expected["unit"], str) or not expected["unit"].strip():
         raise ValueError("task expected.unit must be a non-empty string")
@@ -114,12 +121,8 @@ def _validate_task(task: Dict[str, Any]) -> None:
         if field not in tolerance:
             raise ValueError("task tolerance missing {0}".format(field))
         candidate = tolerance[field]
-        if (
-            isinstance(candidate, bool)
-            or not isinstance(candidate, (int, float))
-            or not math.isfinite(float(candidate))
-            or candidate < 0
-        ):
+        normalized_candidate = _finite_json_number(candidate)
+        if normalized_candidate is None or normalized_candidate < 0:
             raise ValueError("task tolerance.{0} must be a finite non-negative number".format(field))
     if tolerance["relative"] > 1:
         raise ValueError("task tolerance.relative must be between zero and one")
@@ -216,7 +219,8 @@ def evaluate_task(task: Dict[str, Any], answer: Optional[Dict[str, Any]]) -> Dic
     # Unit and numeric evaluation.
     answer_value = answer.get("value")
     answer_unit = answer.get("unit")
-    if not isinstance(answer_value, (int, float)) or isinstance(answer_value, bool) or not math.isfinite(float(answer_value)):
+    normalized_answer_value = _finite_json_number(answer_value)
+    if normalized_answer_value is None:
         failures.append(_failure("invalid_numeric"))
     elif not isinstance(answer_unit, str):
         failures.append(_failure("unsupported_unit", "Answer unit is missing or not a string."))
@@ -224,29 +228,31 @@ def evaluate_task(task: Dict[str, Any], answer: Optional[Dict[str, Any]]) -> Dic
         try:
             describe(str(expected["unit"]))
             describe(answer_unit)
-            candidate_value = convert(float(answer_value), answer_unit, str(expected["unit"]))
+            candidate_value = convert(
+                normalized_answer_value, answer_unit, str(expected["unit"])
+            )
             components["unit"] = True
             if not math.isfinite(candidate_value):
                 failures.append(_failure("invalid_numeric", "Converted answer value is non-finite."))
-                return _task_result(task, components, failures, converted_value)
-            converted_value = candidate_value
-            difference = abs(converted_value - float(expected["value"]))
-            tolerance = task["tolerance"]
-            allowed = max(
-                float(tolerance["absolute"]),
-                abs(float(expected["value"])) * float(tolerance["relative"]),
-            )
-            if difference <= allowed:
-                components["numeric"] = True
             else:
-                failures.append(
-                    _failure(
-                        "numeric_out_of_tolerance",
-                        "Converted value {0:.9g} differs from {1:.9g}; allowed {2:.9g}.".format(
-                            converted_value, float(expected["value"]), allowed
-                        ),
-                    )
+                converted_value = candidate_value
+                difference = abs(converted_value - float(expected["value"]))
+                tolerance = task["tolerance"]
+                allowed = max(
+                    float(tolerance["absolute"]),
+                    abs(float(expected["value"])) * float(tolerance["relative"]),
                 )
+                if difference <= allowed:
+                    components["numeric"] = True
+                else:
+                    failures.append(
+                        _failure(
+                            "numeric_out_of_tolerance",
+                            "Converted value {0:.9g} differs from {1:.9g}; allowed {2:.9g}.".format(
+                                converted_value, float(expected["value"]), allowed
+                            ),
+                        )
+                    )
         except UnsupportedUnit as exc:
             failures.append(_failure("unsupported_unit", str(exc)))
         except UnitDimensionMismatch as exc:

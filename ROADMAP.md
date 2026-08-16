@@ -1,6 +1,6 @@
 # Roadmap
 
-Climate Evidence Bench is at `0.1.0`: a deterministic structured evaluator with synthetic fixtures and a versioned failure taxonomy.
+Climate Evidence Bench is at `0.1.1`: a deterministic structured evaluator with synthetic fixtures and a versioned failure taxonomy.
 
 ## 0.2 — Contract hardening
 

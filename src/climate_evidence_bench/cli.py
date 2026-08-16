@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from .demo import demo_records
 from .evaluator import evaluate_records
-from .io import read_jsonl, write_jsonl
+from .io import jsonl_text, read_jsonl
 from .reporting import write_reports
 
 
@@ -27,16 +27,19 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[List[str]] = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        extra_files = {}
         if args.command == "demo":
             tasks, answers = demo_records()
             if args.emit_jsonl:
-                write_jsonl(tasks, args.output_dir / "tasks.synthetic.jsonl")
-                write_jsonl(answers, args.output_dir / "answers.synthetic.jsonl")
+                extra_files = {
+                    "tasks.synthetic.jsonl": jsonl_text(tasks),
+                    "answers.synthetic.jsonl": jsonl_text(answers),
+                }
         else:
             tasks = read_jsonl(args.tasks)
             answers = read_jsonl(args.answers)
         result = evaluate_records(tasks, answers)
-        paths = write_reports(result, args.output_dir)
+        paths = write_reports(result, args.output_dir, extra_files=extra_files)
         print("Synthetic benchmark data only; not current climate facts.")
         print("Pass rate: {0:.2%}; mean score: {1:.3f}".format(result["metrics"]["pass_rate"], result["metrics"]["mean_score"]))
         for kind, path in paths.items():
